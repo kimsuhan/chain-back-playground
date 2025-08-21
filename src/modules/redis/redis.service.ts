@@ -1,0 +1,88 @@
+import redisConfig from '@/configs/redis.config';
+import { CACHE_KEY } from '@/modules/redis/consts/cache-key.const';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import type { ConfigType } from '@nestjs/config';
+import Redis, { ChainableCommander } from 'ioredis';
+
+@Injectable()
+export class RedisService implements OnModuleInit {
+  private readonly logger = new Logger(RedisService.name);
+  private redis: Redis;
+
+  constructor(
+    @Inject(redisConfig.KEY)
+    private redisConfigs: ConfigType<typeof redisConfig>,
+  ) {}
+
+  /**
+   * 모듈 초기화
+   */
+  async onModuleInit() {
+    const { host, port } = this.redisConfigs;
+
+    try {
+      this.logger.log('┌─────────────────────────────┐');
+      this.logger.log('  Redis 세팅 시작');
+      this.logger.log(`  REDIS_HOST: ${host}`);
+      this.logger.log(`  REDIS_PORT: ${port}`);
+
+      this.redis = new Redis({
+        host,
+        port,
+      });
+
+      await new Promise((resolve) => {
+        this.redis.on('ready', () => {
+          resolve(true);
+          this.logger.log('  Redis 준비 완료');
+        });
+
+        this.redis.on('error', (error) => {
+          this.logger.error('Redis Error', error);
+        });
+      });
+
+      this.logger.log('└─────────────────────────────┘');
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  /**
+   * Redis 연결 상태 확인
+   *
+   * @returns Redis 연결 상태
+   */
+  isReady(): boolean {
+    return this.redis.status === 'ready';
+  }
+
+  /**
+   * Redis의 기본 형인 String 타입 조회
+   *
+   * @param key
+   * @returns 조회 결과
+   */
+  async get<T>(key: CACHE_KEY, defaultValue: T): Promise<T> {
+    const value = await this.redis.get(key);
+    if (value === null) {
+      return defaultValue;
+    }
+
+    try {
+      return JSON.parse(value) as T;
+    } catch (error) {
+      this.logger.error(error);
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Redis Pipeline 생성
+   *
+   * @returns Pipeline
+   */
+  getPipeline(): ChainableCommander {
+    return this.redis.pipeline();
+  }
+}
