@@ -65,4 +65,24 @@ export class BlockService implements OnModuleInit {
     this.logger.debug(`${startBlockNumber} ~ ${endBlockNumber} 새로운 블록 저장`);
     await pipeline.exec();
   }
+
+  /**
+   * 블록 정보 조회
+   *
+   * @param limit
+   * @param offset
+   */
+  async getBlocks(limit: number, offset: number): Promise<{ data: Block[]; total: number }> {
+    const start = offset;
+    const end = offset + limit - 1;
+    const total = await this.redisService.zcard(CACHE_KEY.BLOCK);
+    const blocks = await this.redisService.zrevrange(CACHE_KEY.BLOCK, start, end);
+
+    const response = blocks.map((block) => JSON.parse(block) as Block);
+
+    return {
+      data: response,
+      total,
+    };
+  }
 }

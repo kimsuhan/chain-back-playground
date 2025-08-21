@@ -87,6 +87,14 @@ export class RedisService implements OnModuleInit {
     await this.redis.set(key, String(value));
   }
 
+  async zcard(key: CACHE_KEY): Promise<number> {
+    return await this.redis.zcard(key);
+  }
+
+  async zrevrange(key: CACHE_KEY, start: number, end: number): Promise<string[]> {
+    return await this.redis.zrevrange(key, start, end);
+  }
+
   /**
    * Redis Pipeline 생성
    *
