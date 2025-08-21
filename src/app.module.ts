@@ -1,3 +1,4 @@
+import { BlockModule } from '@/modules/block/block.module';
 import { PrismaModule } from '@/modules/prisma/prisma.module';
 import { RedisModule } from '@/modules/redis/redis.module';
 import { ViemModule } from '@/modules/viem/viem.module';
@@ -17,6 +18,8 @@ import redisConfig from 'src/configs/redis.config';
     RedisModule,
     PrismaModule,
     ViemModule,
+
+    BlockModule,
   ],
 })
 export class AppModule {}

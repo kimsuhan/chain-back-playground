@@ -1,7 +1,12 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { RedisService } from '@/modules/redis/redis.service';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+
+BigInt.prototype.toJSON = function () {
+  return String(this);
+};
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,7 +27,8 @@ async function bootstrap() {
     process.exit(1);
   }
 
-  console.log(`🚀 API Server running on http://localhost:${port}`);
+  const logger = new Logger('Main');
+  logger.log(`🚀 API Server running on http://localhost:${port}`);
 }
 
 void bootstrap();

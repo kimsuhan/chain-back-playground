@@ -78,6 +78,16 @@ export class RedisService implements OnModuleInit {
   }
 
   /**
+   * Redis 기본 형인 String 타입 저장
+   *
+   * @param key
+   * @param value
+   */
+  async set(key: CACHE_KEY, value: any): Promise<void> {
+    await this.redis.set(key, String(value));
+  }
+
+  /**
    * Redis Pipeline 생성
    *
    * @returns Pipeline

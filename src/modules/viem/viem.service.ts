@@ -1,5 +1,4 @@
 import chainConfig from '@/configs/chain.config';
-import { BlockDto } from '@/modules/viem/dto/block.dto';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { Block, createPublicClient, http, PublicClient } from 'viem';
@@ -61,41 +60,12 @@ export class ViemService implements OnModuleInit {
    * @param blockNumber
    * @returns
    */
-  async getBlock(blockNumber: number): Promise<BlockDto | null> {
+  async getBlock(blockNumber: number): Promise<Block | null> {
     const block: Block = await this.publicClient.getBlock({
       blockNumber: BigInt(blockNumber),
     });
 
-    // const transactions = [];
-    if (Array.isArray(block.transactions)) {
-      for (const transaction of block.transactions) {
-        if (typeof transaction === 'string' && transaction.startsWith('0x')) {
-          const receipt = await this.publicClient.getTransactionReceipt({
-            hash: transaction,
-          });
-
-          console.log(receipt);
-
-          // transactions.push(receipt);
-        }
-      }
-
-      // try {
-      //   console.log(block.transactions.length);
-      // } catch (error) {
-      //   console.log(error);
-      // }
-
-      // console.log(block.transactions.length);
-    }
-
-    // console.log(block.transactions.length());
-
-    if (!block) {
-      return null;
-    }
-
-    return new BlockDto(block);
+    return block;
 
     // return {
     //   blockNumber: toNumber(block.number),
