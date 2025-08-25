@@ -1,3 +1,4 @@
+import { BlockGateway } from '@/modules/block/block.gateway';
 import { CACHE_KEY } from '@/modules/redis/consts/cache-key.const';
 import { RedisService } from '@/modules/redis/redis.service';
 import { ViemService } from '@/modules/viem/viem.service';
@@ -11,6 +12,7 @@ export class BlockService implements OnModuleInit {
   constructor(
     private readonly viemService: ViemService,
     private readonly redisService: RedisService,
+    private readonly blockGateway: BlockGateway,
   ) {}
 
   /**
@@ -62,6 +64,7 @@ export class BlockService implements OnModuleInit {
       pipeline.zremrangebyrank(CACHE_KEY.BLOCK, 0, -10001); // 10,000개 유지
     }
 
+    this.blockGateway.broadcastNewBlock(blocks);
     this.logger.debug(`${startBlockNumber} ~ ${endBlockNumber} 새로운 블록 저장`);
     await pipeline.exec();
   }
