@@ -66,36 +66,19 @@ export class ViemService implements OnModuleInit {
     });
 
     return block;
+  }
 
-    // return {
-    //   blockNumber: toNumber(block.number),
-    //   baseFeePerGas: toNumber(block.baseFeePerGas),
-    //   blobGasUsed: toNumber(block.blobGasUsed),
-    //   difficulty: toNumber(block.difficulty),
-    //   excessBlobGas: toNumber(block.excessBlobGas),
-    //   extraData: block.extraData,
-    //   gasLimit: toNumber(block.gasLimit),
-    //   gasUsed: toNumber(block.gasUsed),
-    //   hash: String(block.hash),
-    //   logsBloom: String(block.logsBloom),
-    //   miner: block.miner,
-    //   mixHash: block.mixHash,
-    //   nonce: block.nonce,
-    //   number: toNumber(block.number),
-    //   parentBeaconBlockRoot: block.parentBeaconBlockRoot,
-    //   parentHash: block.parentHash,
-    //   receiptsRoot: block.receiptsRoot,
-    //   sealFields: block.sealFields,
-    //   sha3Uncles: block.sha3Uncles,
-    //   size: toNumber(block.size),
-    //   stateRoot: block.stateRoot,
-    //   timestamp: toNumber(block.timestamp),
-    //   totalDifficulty: toNumber(block.totalDifficulty),
-    //   // transactions: block.transactions,
-    //   transactionsRoot: block.transactionsRoot,
-    //   uncles: block.uncles,
-    //   withdrawals: block.withdrawals,
-    //   withdrawalsRoot: block.withdrawalsRoot,
-    // };
+  /**
+   * 블록 트랜잭션 개수 조회
+   *
+   * @param blockNumber
+   * @returns 블록 트랜잭션 개수
+   */
+  async getBlockTransactionCount(blockNumber: number): Promise<number> {
+    const count = await this.publicClient.getBlockTransactionCount({
+      blockNumber: BigInt(blockNumber),
+    });
+
+    return count;
   }
 }

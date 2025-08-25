@@ -16,12 +16,15 @@ datasource db {
 
 
 model Token {
-  id        String   @id @default(uuid())
+  id        Int   @id @default(autoincrement())
   address   String   @unique
   name      String
   symbol    String
   decimals  Int
   totalSupply String
+  txHash      String
+  owner       String
+  blockNumber BigInt
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

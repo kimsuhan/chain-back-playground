@@ -2,6 +2,7 @@ import { PrismaService } from '@/modules/prisma/prisma.service';
 import { RedisService } from '@/modules/redis/redis.service';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 BigInt.prototype.toJSON = function () {
@@ -16,6 +17,11 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
+  const config = new DocumentBuilder().setTitle('Block API').setDescription('Block API description').setVersion('1.0').addTag('block').build();
+
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, documentFactory);
 
   const port = process.env.PORT || 4000;
   await app.listen(port);
