@@ -1,4 +1,5 @@
 import { BlockModule } from '@/modules/block/block.module';
+import { MultiSenderModule } from '@/modules/multi-sender/multi-sender.module';
 import { PrismaModule } from '@/modules/prisma/prisma.module';
 import { RedisModule } from '@/modules/redis/redis.module';
 import { TokenFactoryModule } from '@/modules/token-factory/token-factory.module';
@@ -24,6 +25,7 @@ import redisConfig from 'src/configs/redis.config';
 
     BlockModule,
     TokenFactoryModule,
+    MultiSenderModule,
   ],
 })
 export class AppModule {}

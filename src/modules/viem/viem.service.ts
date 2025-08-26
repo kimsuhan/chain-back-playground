@@ -22,6 +22,31 @@ export class ViemService implements OnModuleInit {
       this.logger.log('  Viem 세팅 시작');
       this.logger.log(`  RPC_URL: ${this.chainConfigs.rpcUrl}`);
 
+      // const ily = defineChain({
+      //   id: 69923,
+      //   name: 'iLity',
+      //   nativeCurrency: {
+      //     decimals: 18,
+      //     name: 'Ether',
+      //     symbol: 'ILY',
+      //   },
+      //   rpcUrls: {
+      //     default: {
+      //       http: [this.chainConfigs.rpcUrl],
+      //       webSocket: ['wss://rpc.zora.energy'],
+      //     },
+      //   },
+      //   blockExplorers: {
+      //     default: { name: 'Explorer', url: 'https://explorer.zora.energy' },
+      //   },
+      //   contracts: {
+      //     multicall3: {
+      //       address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+      //       blockCreated: 5882,
+      //     },
+      //   },
+      // });
+
       this.publicClient = createPublicClient({
         chain: {
           id: Number(this.chainConfigs.chainId),
@@ -74,11 +99,26 @@ export class ViemService implements OnModuleInit {
    * @param blockNumber
    * @returns 블록 트랜잭션 개수
    */
-  async getBlockTransactionCount(blockNumber: number): Promise<number> {
+  async getBlockTransactionCount(blockNumber: bigint): Promise<number> {
     const count = await this.publicClient.getBlockTransactionCount({
-      blockNumber: BigInt(blockNumber),
+      blockNumber: blockNumber,
     });
 
     return count;
+  }
+
+  /**
+   * 트랜잭션 조회
+   *
+   * @param hash
+   * @returns 트랜잭션 정보
+   */
+  async getTransaction(blockHash: string, index: number) {
+    const transaction = await this.publicClient.getTransaction({
+      blockHash: blockHash as `0x${string}`,
+      index: index,
+    });
+
+    return transaction;
   }
 }

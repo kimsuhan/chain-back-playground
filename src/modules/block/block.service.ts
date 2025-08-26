@@ -26,14 +26,27 @@ export class BlockService implements OnModuleInit {
     }
 
     // 마지막 블록 넘버 - 레디스에 기록된 블록 넘버의 차이가 10,000개 이상이면 마지막 기록부터 10,000개만 저장
-    if (lastBlockNumber - redisBlockNumber > 10000) {
-      await this.blockPush(lastBlockNumber - 10000, lastBlockNumber);
+    if (lastBlockNumber - redisBlockNumber > 1000) {
+      await this.blockPush(lastBlockNumber - 1000, lastBlockNumber);
     } else {
       await this.blockPush(redisBlockNumber, lastBlockNumber);
     }
 
     // 마지막 블록 정보 기록
     await this.redisService.set(CACHE_KEY.LAST_BLOCK, lastBlockNumber);
+
+    this.eventBlock();
+  }
+
+  eventBlock() {
+    this.viemService.publicClient.watchBlockNumber({
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      onBlockNumber: async (blockNumber) => {
+        const lastBlockNumber = await this.redisService.get(CACHE_KEY.LAST_BLOCK, 0);
+        await this.blockPush(Number(lastBlockNumber), Number(blockNumber));
+        await this.redisService.set(CACHE_KEY.LAST_BLOCK, Number(blockNumber));
+      },
+    });
   }
 
   /**
@@ -56,6 +69,18 @@ export class BlockService implements OnModuleInit {
       if (currentPercent > percent) {
         percent = currentPercent;
         this.logger.verbose(`[ ${block.number} ] ${percent.toFixed(2)}%`);
+      }
+
+      const transactionCount = await this.viemService.getBlockTransactionCount(block.number!);
+      if (transactionCount > 0) {
+        for (let i = 0; i < transactionCount; i++) {
+          const transaction = await this.viemService.publicClient.getTransaction({
+            blockHash: block.hash as `0x${string}`,
+            index: i,
+          });
+
+          console.log(transaction);
+        }
       }
 
       pipeline.zadd(CACHE_KEY.BLOCK, Number(block.number), JSON.stringify(block));
@@ -87,5 +112,20 @@ export class BlockService implements OnModuleInit {
       data: response,
       total,
     };
+  }
+
+  /**
+   * 블록 상세 조회
+   *
+   * @param blockNumber
+   * @returns 블록 상세 정보
+   */
+  async detailBlock(blockNumber: number): Promise<Block | null> {
+    const block = await this.viemService.getBlock(blockNumber);
+    if (!block || block === null) {
+      return null;
+    }
+
+    return block;
   }
 }

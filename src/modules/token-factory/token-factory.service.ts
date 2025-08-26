@@ -1,4 +1,5 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
+import { ERC20_ABI } from '@/modules/token-factory/consts/erc20.const';
 import { TOKEN_FACTORY_ABI, TOKEN_FACTORY_ADDRESS } from '@/modules/token-factory/consts/token-factory.const';
 import { ViemService } from '@/modules/viem/viem.service';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
@@ -10,8 +11,8 @@ export class TokenFactoryService implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     void this.setupEventListeners();
-
-    await this.init();
+    await this.saveAllToken();
+    // await this.init();
   }
 
   constructor(
@@ -26,17 +27,75 @@ export class TokenFactoryService implements OnModuleInit {
     this.logger.debug('🎧 실시간 이벤트 리스너 설정...');
 
     this.viemService.publicClient.watchEvent({
-      address: TOKEN_FACTORY_ADDRESS,
-      event: parseAbiItem('event TokenDeployed(string name, string symbol, uint256 initialSupply, address owner)'),
-      onLogs: (event) => {
-        console.log(event);
-        // this.logger.log(`TokenDeployed: ${event.args.name} ${event.args.symbol} ${event.args.initialSupply} ${event.args.owner}`);
+      event: parseAbiItem('event Transfer(address indexed from, address indexed to, uint256 value)'),
+      onLogs: () => {
+        void this.saveAllToken();
+      },
+    });
+  }
+
+  /**
+   * 토큰 조회
+   */
+  async saveAllToken() {
+    const lastBlockNumber = await this.prisma.token.aggregate({
+      _max: {
+        blockNumber: true,
       },
     });
 
-    // this.viemService.publicClient.on('TokenDeployed', (event) => {
-    //   this.logger.log(`TokenDeployed: ${event.args.name} ${event.args.symbol} ${event.args.initialSupply} ${event.args.owner}`);
-    // });
+    const logs = await this.viemService.publicClient.getLogs({
+      event: parseAbiItem('event Transfer(address indexed from, address indexed to, uint256 value)'),
+      fromBlock: lastBlockNumber._max.blockNumber ?? 0n,
+      toBlock: 'latest',
+    });
+
+    if (logs && logs.length > 0) {
+      const findToken: { name: string; symbol: string; address: string }[] = [];
+      for (const log of logs) {
+        // 민팅 이벤트가 아니면 스킵
+        if (log.args.from !== '0x0000000000000000000000000000000000000000') {
+          continue;
+        }
+
+        // 이미 저장된 토큰이면 스킵
+        const findToken = await this.prisma.token.count({ where: { address: log.address } });
+        if (findToken > 0) continue;
+
+        const name = await this.viemService.publicClient.readContract({
+          address: log.address,
+          abi: ERC20_ABI,
+          functionName: 'name',
+        });
+
+        const symbol = await this.viemService.publicClient.readContract({
+          address: log.address,
+          abi: ERC20_ABI,
+          functionName: 'symbol',
+        });
+
+        const totalSupply = await this.viemService.publicClient.readContract({
+          address: log.address,
+          abi: ERC20_ABI,
+          functionName: 'totalSupply',
+        });
+
+        await this.prisma.token.create({
+          data: {
+            address: log.address,
+            name: name as string,
+            symbol: symbol as string,
+            decimals: 18,
+            totalSupply: String(totalSupply),
+            txHash: log.transactionHash,
+            owner: log.args.to as `0x${string}`,
+            blockNumber: log.blockNumber,
+          },
+        });
+      }
+
+      console.log(findToken);
+    }
   }
 
   /**
@@ -86,6 +145,8 @@ export class TokenFactoryService implements OnModuleInit {
 
   /**
    * 토큰 목록 초기화
+   *
+   * @deprecated
    */
   async init() {
     // 이벤트를 찾은 마지막 블록부터 조회 합니다.
@@ -98,8 +159,8 @@ export class TokenFactoryService implements OnModuleInit {
     const searchBlockNumber = lastBlockNumber._max.blockNumber ?? 0n;
     const events = await this.viemService.publicClient.getContractEvents({
       address: TOKEN_FACTORY_ADDRESS,
-      eventName: 'TokenDeployed',
       abi: TOKEN_FACTORY_ABI,
+      eventName: 'TokenDeployed',
       toBlock: 'latest',
       fromBlock: searchBlockNumber + 1n,
     });
@@ -129,5 +190,10 @@ export class TokenFactoryService implements OnModuleInit {
         });
       }
     }
+  }
+
+  async reset() {
+    await this.prisma.token.deleteMany();
+    // void this.init();
   }
 }

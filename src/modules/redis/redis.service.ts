@@ -87,6 +87,10 @@ export class RedisService implements OnModuleInit {
     await this.redis.set(key, String(value));
   }
 
+  async flushall(): Promise<void> {
+    await this.redis.flushall();
+  }
+
   async zcard(key: CACHE_KEY): Promise<number> {
     return await this.redis.zcard(key);
   }

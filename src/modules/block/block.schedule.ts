@@ -3,7 +3,6 @@ import { CACHE_KEY } from '@/modules/redis/consts/cache-key.const';
 import { RedisService } from '@/modules/redis/redis.service';
 import { ViemService } from '@/modules/viem/viem.service';
 import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class BlockSchedule {
@@ -13,7 +12,7 @@ export class BlockSchedule {
     private readonly redisService: RedisService,
   ) {}
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  // @Cron(CronExpression.EVERY_5_SECONDS)
   async handle() {
     let isCall = true;
     if (!isCall) {
