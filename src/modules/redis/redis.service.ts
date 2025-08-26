@@ -87,6 +87,14 @@ export class RedisService implements OnModuleInit {
     await this.redis.set(key, String(value));
   }
 
+  async lpush(key: CACHE_KEY, value: string): Promise<void> {
+    await this.redis.lpush(key, value);
+  }
+
+  async lrange(key: CACHE_KEY, start: number, end: number): Promise<string[]> {
+    return await this.redis.lrange(key, start, end);
+  }
+
   async flushall(): Promise<void> {
     await this.redis.flushall();
   }

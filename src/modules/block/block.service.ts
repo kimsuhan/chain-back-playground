@@ -79,7 +79,7 @@ export class BlockService implements OnModuleInit {
             index: i,
           });
 
-          console.log(transaction);
+          await this.redisService.lpush(CACHE_KEY.TRANSACTION, JSON.stringify(transaction));
         }
       }
 
