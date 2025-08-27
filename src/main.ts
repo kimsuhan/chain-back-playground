@@ -18,7 +18,7 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  const config = new DocumentBuilder().setTitle('Block API').setDescription('Block API description').setVersion('1.0').addTag('block').build();
+  const config = new DocumentBuilder().setTitle('Block API').setDescription('Block API description').setVersion('1.0').build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

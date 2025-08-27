@@ -1,12 +1,14 @@
 import chainConfig from '@/configs/chain.config';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
-import { Block, createPublicClient, http, PublicClient } from 'viem';
+import { Block, createPublicClient, createWalletClient, http, PublicClient, WalletClient } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 
 @Injectable()
 export class ViemService implements OnModuleInit {
   private readonly logger = new Logger(ViemService.name);
   publicClient: PublicClient;
+  walletClient: WalletClient;
 
   constructor(
     @Inject(chainConfig.KEY)
@@ -59,8 +61,36 @@ export class ViemService implements OnModuleInit {
             },
           },
           testnet: true,
+          contracts: {
+            multicall3: {
+              address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+            },
+          },
         },
         transport: http(this.chainConfigs.rpcUrl),
+      });
+
+      const account = privateKeyToAccount('0xfa5efb133cb1ff4f4b42c6a5878d75e3c86cb88c7a3a267ee58667e1f31741cd');
+      this.walletClient = createWalletClient({
+        chain: {
+          id: Number(this.chainConfigs.chainId),
+          name: 'Ethereum',
+          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+          blockTime: 10_000,
+          rpcUrls: {
+            default: {
+              http: [this.chainConfigs.rpcUrl as string],
+            },
+          },
+          testnet: true,
+          contracts: {
+            multicall3: {
+              address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+            },
+          },
+        },
+        transport: http(this.chainConfigs.rpcUrl),
+        account,
       });
 
       this.logger.log('└─────────────────────────────┘');

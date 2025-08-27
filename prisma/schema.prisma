@@ -28,3 +28,36 @@ model Token {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model DexPool {
+  id        Int   @id @default(autoincrement())
+  tokenA    String
+  tokenASymbol String
+  tokenAName String
+  tokenB    String
+  tokenBSymbol String
+  tokenBName String
+  amountA   String @db.VarChar(1000)
+  amountB   String @db.VarChar(100)
+  totalLiquidity String @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  history DexPoolHistory[]
+
+  @@unique([tokenA, tokenB])
+}
+
+model DexPoolHistory {
+  id        Int   @id @default(autoincrement())
+  txHash    String
+  poolId    Int
+  amountA   String @db.VarChar(100)
+  amountB   String @db.VarChar(100)
+  liquidity String @db.VarChar(100)
+  timestamp BigInt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pool DexPool @relation(fields: [poolId], references: [id])
+}
