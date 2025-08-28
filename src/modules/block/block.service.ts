@@ -33,19 +33,20 @@ export class BlockService implements OnModuleInit {
       await this.blockPush(redisBlockNumber, lastBlockNumber);
     }
 
-    // 마지막 블록 정보 기록
-    await this.redisService.set(CACHE_KEY.LAST_BLOCK, lastBlockNumber);
-
-    this.eventBlock();
+    // 이벤트 리스너 등록
+    this.setupEventListner();
   }
 
-  eventBlock() {
+  /**
+   * 블록 이벤트 처리
+   */
+  setupEventListner(): void {
     this.viemService.publicClient.watchBlockNumber({
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      onBlockNumber: async (blockNumber) => {
-        const lastBlockNumber = await this.redisService.get(CACHE_KEY.LAST_BLOCK, 0);
-        await this.blockPush(Number(lastBlockNumber + 1), Number(blockNumber));
-        await this.redisService.set(CACHE_KEY.LAST_BLOCK, Number(blockNumber));
+      onBlockNumber: (blockNumber) => {
+        void this.redisService.get(CACHE_KEY.LAST_BLOCK, 0).then(async (lastBlockNumber) => {
+          await this.blockPush(Number(lastBlockNumber + 1), Number(blockNumber));
+          // await this.redisService.set(CACHE_KEY.LAST_BLOCK, Number(blockNumber));
+        });
       },
     });
   }
@@ -79,6 +80,9 @@ export class BlockService implements OnModuleInit {
 
     this.blockGateway.broadcastNewBlock(blocks);
     await pipeline.exec();
+
+    // 마지막 블록 정보 기록
+    await this.redisService.set(CACHE_KEY.LAST_BLOCK, endBlockNumber);
   }
 
   /**
