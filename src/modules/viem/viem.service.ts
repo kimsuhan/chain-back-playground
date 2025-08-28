@@ -86,12 +86,16 @@ export class ViemService implements OnModuleInit {
    * @returns
    */
   async getBlock(blockNumber: number): Promise<Block | null> {
-    const block: Block = await this.publicClient.getBlock({
-      blockNumber: BigInt(blockNumber),
-      includeTransactions: true,
-    });
+    try {
+      const block = await this.publicClient.getBlock({
+        blockNumber: BigInt(blockNumber),
+        includeTransactions: true,
+      });
 
-    return block;
+      return block;
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -112,20 +116,6 @@ export class ViemService implements OnModuleInit {
     );
 
     return blocks;
-  }
-
-  /**
-   * 블록 트랜잭션 개수 조회
-   *
-   * @param blockNumber
-   * @returns 블록 트랜잭션 개수
-   */
-  async getBlockTransactionCount(blockNumber: bigint): Promise<number> {
-    const count = await this.publicClient.getBlockTransactionCount({
-      blockNumber: blockNumber,
-    });
-
-    return count;
   }
 
   /**

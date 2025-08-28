@@ -2,7 +2,7 @@ import { BlockGateway } from '@/modules/block/block.gateway';
 import { CACHE_KEY } from '@/modules/redis/consts/cache-key.const';
 import { RedisService } from '@/modules/redis/redis.service';
 import { ViemService } from '@/modules/viem/viem.service';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { Block } from 'viem';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class BlockService implements OnModuleInit {
     }
 
     // 마지막 블록 넘버 - 레디스에 기록된 블록 넘버의 차이가 10,000개 이상이면 마지막 기록부터 10,000개만 저장
-    if (lastBlockNumber - redisBlockNumber > 1000) {
+    if (lastBlockNumber - redisBlockNumber > this.maxBlockCount) {
       await this.blockPush(lastBlockNumber - this.maxBlockCount, lastBlockNumber);
     } else {
       await this.blockPush(redisBlockNumber, lastBlockNumber);
@@ -112,19 +112,22 @@ export class BlockService implements OnModuleInit {
    * @returns 블록 상세 정보
    */
   async detailBlock(blockNumber: number): Promise<Block | null> {
+    let returnBlock: Block | null = null;
     const redisBlock = await this.redisService.zrangebyscore(CACHE_KEY.BLOCK, blockNumber, blockNumber);
     if (redisBlock.length > 0) {
       this.logger.debug(`Redis에서 [ ${blockNumber} ] 블록 정보 조회 완료`);
-      return JSON.parse(redisBlock[0]) as Block;
+      returnBlock = JSON.parse(redisBlock[0]) as Block;
     }
 
     // Redis에 없으면 Chain에서 조회
     const block = await this.viemService.getBlock(blockNumber);
-    if (!block || block === null) {
-      return null;
+    this.logger.debug(`Chain에서 [ ${blockNumber} ] 블록 정보 조회 완료`);
+    returnBlock = block;
+
+    if (returnBlock === null) {
+      throw new NotFoundException(`[ ${blockNumber} ] 블록 정보를 찾을 수 없습니다.`);
     }
 
-    this.logger.debug(`Chain에서 [ ${blockNumber} ] 블록 정보 조회 완료`);
-    return block;
+    return returnBlock;
   }
 }
