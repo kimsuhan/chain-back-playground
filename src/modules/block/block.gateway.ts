@@ -15,7 +15,7 @@ export class BlockGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   private readonly logger = new Logger(BlockGateway.name);
 
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   afterInit(server: Server) {
     this.logger.log('WebSocket Gateway initialized on port 4001');

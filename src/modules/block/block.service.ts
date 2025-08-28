@@ -8,6 +8,7 @@ import { Block } from 'viem';
 @Injectable()
 export class BlockService implements OnModuleInit {
   private readonly logger = new Logger(BlockService.name);
+  private readonly maxBlockCount: number = 1000;
 
   constructor(
     private readonly viemService: ViemService,
@@ -27,7 +28,7 @@ export class BlockService implements OnModuleInit {
 
     // 마지막 블록 넘버 - 레디스에 기록된 블록 넘버의 차이가 10,000개 이상이면 마지막 기록부터 10,000개만 저장
     if (lastBlockNumber - redisBlockNumber > 1000) {
-      await this.blockPush(lastBlockNumber - 1000, lastBlockNumber);
+      await this.blockPush(lastBlockNumber - this.maxBlockCount, lastBlockNumber);
     } else {
       await this.blockPush(redisBlockNumber, lastBlockNumber);
     }
@@ -43,7 +44,7 @@ export class BlockService implements OnModuleInit {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       onBlockNumber: async (blockNumber) => {
         const lastBlockNumber = await this.redisService.get(CACHE_KEY.LAST_BLOCK, 0);
-        await this.blockPush(Number(lastBlockNumber), Number(blockNumber));
+        await this.blockPush(Number(lastBlockNumber + 1), Number(blockNumber));
         await this.redisService.set(CACHE_KEY.LAST_BLOCK, Number(blockNumber));
       },
     });
@@ -56,41 +57,27 @@ export class BlockService implements OnModuleInit {
    */
   async blockPush(startBlockNumber: number, endBlockNumber: number): Promise<void> {
     const pipeline = this.redisService.getPipeline();
-    const blocks: Block[] = [];
     let percent = 0.0;
-    for (let i = startBlockNumber; i < endBlockNumber; i++) {
-      const block: Block | null = await this.viemService.getBlock(i);
-      if (!block || block === null) {
-        this.logger.error('❌ 블록 정보 조회 실패');
-        continue;
-      }
 
-      const currentPercent = Math.round((i / endBlockNumber) * 100 * 100) / 100;
+    this.logger.debug(`[ ${startBlockNumber} ~ ${endBlockNumber} ] 블록 정보 조회`);
+    const blockNumbers = Array.from({ length: endBlockNumber - startBlockNumber + 1 }, (_, i) => startBlockNumber + i);
+    const blocks = await this.viemService.getBlocks(blockNumbers);
+
+    let i = 0;
+    for (const block of blocks) {
+      i++;
+
+      const currentPercent = Math.round((i / blocks.length) * 100 * 100) / 100;
       if (currentPercent > percent) {
         percent = currentPercent;
         this.logger.verbose(`[ ${block.number} ] ${percent.toFixed(2)}%`);
       }
 
-      const transactionCount = await this.viemService.getBlockTransactionCount(block.number!);
-      if (transactionCount > 0) {
-        for (let i = 0; i < transactionCount; i++) {
-          const transaction = await this.viemService.publicClient.getTransaction({
-            blockHash: block.hash as `0x${string}`,
-            index: i,
-          });
-
-          await this.redisService.lpush(CACHE_KEY.TRANSACTION, JSON.stringify(transaction));
-        }
-      }
-
       pipeline.zadd(CACHE_KEY.BLOCK, Number(block.number), JSON.stringify(block));
-      blocks.push(block);
-
-      pipeline.zremrangebyrank(CACHE_KEY.BLOCK, 0, -10001); // 10,000개 유지
+      pipeline.zremrangebyrank(CACHE_KEY.BLOCK, 0, -this.maxBlockCount - 1); // 최대 개수 유지
     }
 
     this.blockGateway.broadcastNewBlock(blocks);
-    this.logger.debug(`${startBlockNumber} ~ ${endBlockNumber} 새로운 블록 저장`);
     await pipeline.exec();
   }
 
@@ -121,11 +108,19 @@ export class BlockService implements OnModuleInit {
    * @returns 블록 상세 정보
    */
   async detailBlock(blockNumber: number): Promise<Block | null> {
+    const redisBlock = await this.redisService.zrangebyscore(CACHE_KEY.BLOCK, blockNumber, blockNumber);
+    if (redisBlock.length > 0) {
+      this.logger.debug(`Redis에서 [ ${blockNumber} ] 블록 정보 조회 완료`);
+      return JSON.parse(redisBlock[0]) as Block;
+    }
+
+    // Redis에 없으면 Chain에서 조회
     const block = await this.viemService.getBlock(blockNumber);
     if (!block || block === null) {
       return null;
     }
 
+    this.logger.debug(`Chain에서 [ ${blockNumber} ] 블록 정보 조회 완료`);
     return block;
   }
 }

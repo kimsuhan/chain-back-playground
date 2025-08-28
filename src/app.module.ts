@@ -1,4 +1,5 @@
 import { BlockModule } from '@/modules/block/block.module';
+import { CompounderModule } from '@/modules/compounder/compounder.module';
 import { MultiSenderModule } from '@/modules/multi-sender/multi-sender.module';
 import { PrismaModule } from '@/modules/prisma/prisma.module';
 import { RedisModule } from '@/modules/redis/redis.module';
@@ -28,6 +29,7 @@ import redisConfig from 'src/configs/redis.config';
     TokenFactoryModule,
     MultiSenderModule,
     SimpleDexModule,
+    CompounderModule,
   ],
 })
 export class AppModule {}

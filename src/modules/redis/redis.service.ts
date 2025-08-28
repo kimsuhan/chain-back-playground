@@ -7,7 +7,7 @@ import Redis, { ChainableCommander } from 'ioredis';
 @Injectable()
 export class RedisService implements OnModuleInit {
   private readonly logger = new Logger(RedisService.name);
-  private redis: Redis;
+  private redis!: Redis;
 
   constructor(
     @Inject(redisConfig.KEY)
@@ -105,6 +105,29 @@ export class RedisService implements OnModuleInit {
 
   async zrevrange(key: CACHE_KEY, start: number, end: number): Promise<string[]> {
     return await this.redis.zrevrange(key, start, end);
+  }
+
+  /**
+   * member를 지정해서 score를 조회
+   *
+   * @param key
+   * @param member
+   * @returns
+   */
+  async zscore(key: CACHE_KEY, member: string): Promise<string | null> {
+    return await this.redis.zscore(key, member);
+  }
+
+  /**
+   * 지정한 score 범위에 해당하는 멤버 조회
+   *
+   * @param key
+   * @param min
+   * @param max
+   * @returns
+   */
+  async zrangebyscore(key: CACHE_KEY, min: number, max: number): Promise<string[]> {
+    return await this.redis.zrangebyscore(key, min, max);
   }
 
   /**

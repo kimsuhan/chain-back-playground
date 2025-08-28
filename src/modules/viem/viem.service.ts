@@ -1,14 +1,16 @@
 import chainConfig from '@/configs/chain.config';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
-import { Block, createPublicClient, createWalletClient, http, PublicClient, WalletClient } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+import { Block, Chain, createPublicClient, createWalletClient, defineChain, http, PublicClient, WalletClient } from 'viem';
+import { Account, privateKeyToAccount } from 'viem/accounts';
 
 @Injectable()
 export class ViemService implements OnModuleInit {
   private readonly logger = new Logger(ViemService.name);
-  publicClient: PublicClient;
-  walletClient: WalletClient;
+  account!: Account;
+  publicClient!: PublicClient;
+  walletClient!: WalletClient;
+  chain!: Chain;
 
   constructor(
     @Inject(chainConfig.KEY)
@@ -24,73 +26,41 @@ export class ViemService implements OnModuleInit {
       this.logger.log('  Viem 세팅 시작');
       this.logger.log(`  RPC_URL: ${this.chainConfigs.rpcUrl}`);
 
-      // const ily = defineChain({
-      //   id: 69923,
-      //   name: 'iLity',
-      //   nativeCurrency: {
-      //     decimals: 18,
-      //     name: 'Ether',
-      //     symbol: 'ILY',
-      //   },
-      //   rpcUrls: {
-      //     default: {
-      //       http: [this.chainConfigs.rpcUrl],
-      //       webSocket: ['wss://rpc.zora.energy'],
-      //     },
-      //   },
-      //   blockExplorers: {
-      //     default: { name: 'Explorer', url: 'https://explorer.zora.energy' },
-      //   },
-      //   contracts: {
-      //     multicall3: {
-      //       address: '0xcA11bde05977b3631167028862bE2a173976CA11',
-      //       blockCreated: 5882,
-      //     },
-      //   },
-      // });
-
-      this.publicClient = createPublicClient({
-        chain: {
-          id: Number(this.chainConfigs.chainId),
-          name: 'Ethereum',
-          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-          blockTime: 10_000,
-          rpcUrls: {
-            default: {
-              http: [this.chainConfigs.rpcUrl as string],
-            },
-          },
-          testnet: true,
-          contracts: {
-            multicall3: {
-              address: '0xcA11bde05977b3631167028862bE2a173976CA11',
-            },
+      this.chain = defineChain({
+        id: 69923,
+        name: 'iLity',
+        nativeCurrency: {
+          decimals: 18,
+          name: 'Ether',
+          symbol: 'ILY',
+        },
+        rpcUrls: {
+          default: {
+            http: [this.chainConfigs.rpcUrl as string],
+            // webSocket: ['wss://ㅑ.zora.energy'],
           },
         },
+        blockExplorers: {
+          default: { name: 'Explorer', url: 'https://ily-explorer.blockgateway.net/' },
+        },
+        contracts: {
+          multicall3: {
+            address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+            blockCreated: 5882,
+          },
+        },
+      });
+
+      this.publicClient = createPublicClient({
+        chain: this.chain,
         transport: http(this.chainConfigs.rpcUrl),
       });
 
-      const account = privateKeyToAccount('0xfa5efb133cb1ff4f4b42c6a5878d75e3c86cb88c7a3a267ee58667e1f31741cd');
+      this.account = privateKeyToAccount('0xfa5efb133cb1ff4f4b42c6a5878d75e3c86cb88c7a3a267ee58667e1f31741cd');
       this.walletClient = createWalletClient({
-        chain: {
-          id: Number(this.chainConfigs.chainId),
-          name: 'Ethereum',
-          nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-          blockTime: 10_000,
-          rpcUrls: {
-            default: {
-              http: [this.chainConfigs.rpcUrl as string],
-            },
-          },
-          testnet: true,
-          contracts: {
-            multicall3: {
-              address: '0xcA11bde05977b3631167028862bE2a173976CA11',
-            },
-          },
-        },
+        chain: this.chain,
         transport: http(this.chainConfigs.rpcUrl),
-        account,
+        account: this.account,
       });
 
       this.logger.log('└─────────────────────────────┘');
@@ -118,9 +88,30 @@ export class ViemService implements OnModuleInit {
   async getBlock(blockNumber: number): Promise<Block | null> {
     const block: Block = await this.publicClient.getBlock({
       blockNumber: BigInt(blockNumber),
+      includeTransactions: true,
     });
 
     return block;
+  }
+
+  /**
+   * 블록 정보 조회
+   *
+   * @param blockNumbers
+   * @returns
+   */
+  async getBlocks(blockNumbers: number[]): Promise<Block[]> {
+    const blocks = await Promise.all(
+      blockNumbers.map(async (blockNumber) => {
+        const block = await this.publicClient.getBlock({
+          blockNumber: BigInt(blockNumber),
+          includeTransactions: true,
+        });
+        return block;
+      }),
+    );
+
+    return blocks;
   }
 
   /**
