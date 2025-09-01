@@ -1,0 +1,202 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type TransactionEntity {
+  """Transaction access list"""
+  accessList: [String!]
+
+  """Transaction block hash"""
+  blockHash: String!
+
+  """Transaction block number"""
+  blockNumber: String!
+
+  """Transaction chain id"""
+  chainId: String!
+
+  """Transaction condition"""
+  condition: String
+
+  """Transaction creates"""
+  creates: String
+
+  """Transaction from"""
+  from: String!
+
+  """Transaction gas"""
+  gas: String!
+
+  """Transaction gas price"""
+  gasPrice: String!
+
+  """Transaction hash"""
+  hash: String!
+
+  """Transaction input"""
+  input: String!
+
+  """Transaction max fee per gas"""
+  maxFeePerGas: String
+
+  """Transaction max priority fee per gas"""
+  maxPriorityFeePerGas: String
+
+  """Transaction nonce"""
+  nonce: String!
+
+  """Transaction public key"""
+  publicKey: String!
+
+  """Transaction r"""
+  r: String!
+
+  """Transaction raw"""
+  raw: String!
+
+  """Transaction s"""
+  s: String!
+
+  """Transaction to"""
+  to: String
+
+  """Transaction transaction index"""
+  transactionIndex: String!
+
+  """Transaction type"""
+  type: String!
+
+  """Transaction v"""
+  v: String!
+
+  """Transaction value"""
+  value: String!
+
+  """Transaction type hex"""
+  typeHex: String!
+
+  """Transaction y parity"""
+  yParity: String
+}
+
+type BlockEntity {
+  """Base fee per gas"""
+  baseFeePerGas: String
+
+  """Total used blob gas by all transactions in this block"""
+  blobGasUsed: String
+
+  """Difficulty for this block"""
+  difficulty: String!
+
+  """Excess blob gas"""
+  excessBlobGas: String
+
+  """"Extra data" field of this block """
+  extraData: String!
+
+  """Maximum gas allowed in this block"""
+  gasLimit: Int!
+
+  """Total used gas by all transactions in this """
+  gasUsed: Int!
+
+  """Block hash or `null` if pending"""
+  hash: String!
+
+  """Logs bloom filter or `null` if pending"""
+  logsBloom: String!
+
+  """Address that received this block’s mining rewards, COINBASE address"""
+  miner: String!
+
+  """Proof-of-work hash or `null` if pending"""
+  mixHash: String
+
+  """Proof-of-work hash or `null` if pending"""
+  nonce: String
+
+  """Block number or `null` if pending"""
+  number: String
+
+  """Root of the parent beacon chain block"""
+  parentBeaconBlockRoot: String
+
+  """Parent block hash"""
+  parentHash: String!
+
+  """Root of the this block’s receipts trie"""
+  receiptsRoot: String!
+
+  """Seal fields"""
+  sealFields: [String!]!
+
+  """SHA3 of the uncles data in this block"""
+  sha3Uncles: String!
+
+  """Size of this block in bytes"""
+  size: Int!
+
+  """Root of this block’s final state trie"""
+  stateRoot: String!
+
+  """Unix timestamp of when this block was collated"""
+  timestamp: Int!
+
+  """Total difficulty of the chain until this block"""
+  totalDifficulty: String
+
+  """List of transaction objects or hashes"""
+  transactions: [TransactionEntity!]!
+
+  """Root of this block’s transaction trie"""
+  transactionsRoot: String!
+
+  """List of uncle hashes"""
+  uncles: [String!]!
+}
+
+type WalletEntity {
+  """Wallet id"""
+  id: Int!
+
+  """Wallet address"""
+  address: String!
+
+  """Wallet name"""
+  name: String!
+
+  """Wallet created at"""
+  createdAt: DateTime!
+
+  """Wallet updated at"""
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Query {
+  blocks: [BlockEntity!]!
+  block(blockNumber: Float!): BlockEntity
+  transactions: [TransactionEntity!]!
+  wallets: [WalletEntity!]!
+}
+
+type Mutation {
+  upsertWallet(data: WalletUpsertInput!): WalletEntity!
+}
+
+input WalletUpsertInput {
+  """Wallet address"""
+  address: String!
+
+  """Wallet name"""
+  name: String!
+}
+
+type Subscription {
+  newBlock: BlockEntity!
+}

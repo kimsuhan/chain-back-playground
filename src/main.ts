@@ -1,6 +1,6 @@
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import { RedisService } from '@/modules/redis/redis.service';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -17,6 +17,13 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+    }),
+  );
 
   const config = new DocumentBuilder().setTitle('Block API').setDescription('Block API description').setVersion('1.0').build();
 

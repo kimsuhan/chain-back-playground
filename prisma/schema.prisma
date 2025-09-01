@@ -14,6 +14,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Wallet {
+  id        Int   @id @default(autoincrement())
+  address   String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 
 model Token {
   id        Int   @id @default(autoincrement())

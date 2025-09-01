@@ -1,8 +1,11 @@
-import { BlockGateway } from '@/modules/block/block.gateway';
+import { PUB_SUB } from '@/app.provider';
+import { BlockEntity } from '@/modules/block/entity/block.entity';
+import { TransactionEntity } from '@/modules/block/entity/transaction.entity';
 import { CACHE_KEY } from '@/modules/redis/consts/cache-key.const';
 import { RedisService } from '@/modules/redis/redis.service';
 import { ViemService } from '@/modules/viem/viem.service';
-import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { PubSub } from 'graphql-subscriptions';
 import { Block } from 'viem';
 
 @Injectable()
@@ -13,7 +16,7 @@ export class BlockService implements OnModuleInit {
   constructor(
     private readonly viemService: ViemService,
     private readonly redisService: RedisService,
-    private readonly blockGateway: BlockGateway,
+    @Inject(PUB_SUB) private pubSub: PubSub,
   ) {}
 
   /**
@@ -74,11 +77,22 @@ export class BlockService implements OnModuleInit {
         this.logger.verbose(`[ ${block.number} ] ${percent.toFixed(2)}%`);
       }
 
-      pipeline.zadd(CACHE_KEY.BLOCK, Number(block.number), JSON.stringify(block));
+      const jsonBlock = JSON.stringify(block);
+      const entityBlock = JSON.parse(jsonBlock) as BlockEntity;
+
+      pipeline.zadd(CACHE_KEY.BLOCK, Number(block.number), jsonBlock);
       pipeline.zremrangebyrank(CACHE_KEY.BLOCK, 0, -this.maxBlockCount - 1); // 최대 개수 유지
+
+      if (entityBlock.transactions.length > 0) {
+        for (const transaction of entityBlock.transactions) {
+          pipeline.lpush(CACHE_KEY.TRANSACTION, JSON.stringify(transaction));
+          pipeline.ltrim(CACHE_KEY.TRANSACTION, 0, this.maxBlockCount - 1); // 최대 개수 유지
+        }
+      }
+
+      void this.pubSub.publish('newBlock', { newBlock: entityBlock });
     }
 
-    this.blockGateway.broadcastNewBlock(blocks);
     await pipeline.exec();
 
     // 마지막 블록 정보 기록
@@ -129,5 +143,47 @@ export class BlockService implements OnModuleInit {
     }
 
     return returnBlock;
+  }
+
+  /**
+   * [GraphQL] 블록 정보 조회
+   *
+   * @returns 블록 정보
+   */
+  async findAllBlock() {
+    const blocks = await this.redisService.zrevrange(CACHE_KEY.BLOCK, 0, -1);
+    return blocks.map((block) => JSON.parse(block) as BlockEntity);
+  }
+
+  /**
+   * [GraphQL] 블록 상세 조회
+   *
+   * @param blockNumber
+   * @returns 블록 상세 정보
+   */
+  async findOneBlock(blockNumber: number): Promise<BlockEntity | null> {
+    const block = await this.redisService.zrangebyscore(CACHE_KEY.BLOCK, blockNumber, blockNumber);
+    if (block.length > 0) {
+      return JSON.parse(block[0]) as BlockEntity;
+    }
+
+    if (!block) {
+      const chainBlock = await this.viemService.getBlock(blockNumber);
+      if (chainBlock) {
+        return JSON.parse(JSON.stringify(chainBlock)) as BlockEntity;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * [GraphQL] 모든 트랜잭션 조회
+   *
+   * @returns 모든 트랜잭션 정보
+   */
+  async findAllTransaction(): Promise<TransactionEntity[]> {
+    const transactions = await this.redisService.lrange(CACHE_KEY.TRANSACTION, 0, -1);
+    return transactions.map((transaction) => JSON.parse(transaction) as TransactionEntity);
   }
 }
