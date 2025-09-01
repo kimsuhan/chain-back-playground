@@ -15,11 +15,13 @@ export class BlockResolver {
 
   @Query(() => [BlockEntity])
   blocks() {
+    console.log('all here');
     return this.blockService.findAllBlock();
   }
 
   @Query(() => BlockEntity, { nullable: true })
   block(@Args('blockNumber') blockNumber: number): Promise<BlockEntity | null> {
+    console.log('here');
     return this.blockService.findOneBlock(blockNumber);
   }
 

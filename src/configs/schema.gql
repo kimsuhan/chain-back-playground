@@ -178,11 +178,50 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type TokenEntity {
+  """Token id"""
+  id: Int!
+
+  """Token address"""
+  address: String!
+
+  """Token name"""
+  name: String!
+
+  """Token Symbol"""
+  symbol: String!
+
+  """Token decimals"""
+  decimals: Int!
+
+  """Token total supply"""
+  totalSupply: String!
+
+  """Token tx hash"""
+  txHash: String!
+
+  """Token owner"""
+  owner: String!
+
+  """Token owner"""
+  ownerAddon: WalletEntity
+
+  """Token block number"""
+  blockNumber: String!
+
+  """Token created at"""
+  createdAt: DateTime!
+
+  """Token updated at"""
+  updatedAt: DateTime!
+}
+
 type Query {
   blocks: [BlockEntity!]!
   block(blockNumber: Float!): BlockEntity
   transactions: [TransactionEntity!]!
   wallets: [WalletEntity!]!
+  tokens: [TokenEntity!]!
 }
 
 type Mutation {

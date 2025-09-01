@@ -165,9 +165,7 @@ export class BlockService implements OnModuleInit {
     const block = await this.redisService.zrangebyscore(CACHE_KEY.BLOCK, blockNumber, blockNumber);
     if (block.length > 0) {
       return JSON.parse(block[0]) as BlockEntity;
-    }
-
-    if (!block) {
+    } else {
       const chainBlock = await this.viemService.getBlock(blockNumber);
       if (chainBlock) {
         return JSON.parse(JSON.stringify(chainBlock)) as BlockEntity;

@@ -2,6 +2,7 @@ import { PrismaService } from '@/modules/core/prisma/prisma.service';
 import { ViemService } from '@/modules/core/viem/viem.service';
 import { ERC20_ABI } from '@/modules/token-factory/consts/erc20.const';
 import { TOKEN_FACTORY_ABI, TOKEN_FACTORY_ADDRESS } from '@/modules/token-factory/consts/token-factory.const';
+import { TokenEntity } from '@/modules/token-factory/entity/token.entity';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { parseAbiItem } from 'viem';
 
@@ -51,7 +52,6 @@ export class TokenFactoryService implements OnModuleInit {
     });
 
     if (logs && logs.length > 0) {
-      const findToken: { name: string; symbol: string; address: string }[] = [];
       for (const log of logs) {
         // 민팅 이벤트가 아니면 스킵
         if (log.args.from !== '0x0000000000000000000000000000000000000000') {
@@ -93,8 +93,6 @@ export class TokenFactoryService implements OnModuleInit {
           },
         });
       }
-
-      console.log(findToken);
     }
   }
 
@@ -141,6 +139,43 @@ export class TokenFactoryService implements OnModuleInit {
       data,
       total,
     };
+  }
+
+  /**
+   * 토큰 목록 조회
+   *
+   * @returns 토큰 목록
+   */
+  async findAll(): Promise<TokenEntity[]> {
+    const datas = await this.prisma.token.findMany({ orderBy: { blockNumber: 'desc' } });
+
+    return Promise.all(
+      datas.map(async (item) => {
+        const ownerAddon = await this.prisma.wallet.findUnique({ where: { address: item.owner } });
+        return {
+          id: item.id,
+          address: item.address,
+          name: item.name,
+          symbol: item.symbol,
+          decimals: item.decimals,
+          totalSupply: item.totalSupply,
+          txHash: item.txHash,
+          owner: item.owner,
+          blockNumber: String(item.blockNumber),
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          ownerAddon: ownerAddon
+            ? {
+                id: ownerAddon.id,
+                address: ownerAddon.address,
+                name: ownerAddon.name,
+                createdAt: ownerAddon.createdAt,
+                updatedAt: ownerAddon.updatedAt,
+              }
+            : null,
+        };
+      }),
+    );
   }
 
   /**
