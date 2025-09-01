@@ -1,4 +1,5 @@
 import { LoggerMiddleware } from '@/commons/logger.middleware';
+import walletConfig from '@/configs/wallet.config';
 import { BlockModule } from '@/modules/block/block.module';
 import { CompounderModule } from '@/modules/compounder/compounder.module';
 import { PrismaModule } from '@/modules/core/prisma/prisma.module';
@@ -22,7 +23,7 @@ import { PUB_SUB_PROVIDER } from './app.provider';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [chainConfig, redisConfig],
+      load: [chainConfig, redisConfig, walletConfig],
     }),
     ScheduleModule.forRoot(),
     GraphQLModule.forRoot<ApolloDriverConfig>({

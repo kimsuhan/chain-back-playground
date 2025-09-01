@@ -1,4 +1,5 @@
 import chainConfig from '@/configs/chain.config';
+import walletConfig from '@/configs/wallet.config';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { Block, Chain, createPublicClient, createWalletClient, defineChain, http, PublicClient, WalletClient } from 'viem';
@@ -15,6 +16,9 @@ export class ViemService implements OnModuleInit {
   constructor(
     @Inject(chainConfig.KEY)
     private chainConfigs: ConfigType<typeof chainConfig>,
+
+    @Inject(walletConfig.KEY)
+    private walletConfigs: ConfigType<typeof walletConfig>,
   ) {}
 
   /**
@@ -56,7 +60,7 @@ export class ViemService implements OnModuleInit {
         transport: http(this.chainConfigs.rpcUrl),
       });
 
-      this.account = privateKeyToAccount('0xfa5efb133cb1ff4f4b42c6a5878d75e3c86cb88c7a3a267ee58667e1f31741cd');
+      this.account = privateKeyToAccount(this.walletConfigs.privateKey as `0x${string}`);
       this.walletClient = createWalletClient({
         chain: this.chain,
         transport: http(this.chainConfigs.rpcUrl),
