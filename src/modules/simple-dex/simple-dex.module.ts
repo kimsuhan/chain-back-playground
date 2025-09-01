@@ -1,6 +1,6 @@
-import { PrismaModule } from '@/modules/prisma/prisma.module';
+import { PrismaModule } from '@/modules/core/prisma/prisma.module';
+import { ViemModule } from '@/modules/core/viem/viem.module';
 import { SimpleDexController } from '@/modules/simple-dex/simple-dex.controller';
-import { ViemModule } from '@/modules/viem/viem.module';
 import { Module } from '@nestjs/common';
 import { SimpleDexService } from './simple-dex.service';
 

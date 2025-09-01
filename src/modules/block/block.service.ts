@@ -1,9 +1,9 @@
 import { PUB_SUB } from '@/app.provider';
 import { BlockEntity } from '@/modules/block/entity/block.entity';
 import { TransactionEntity } from '@/modules/block/entity/transaction.entity';
-import { CACHE_KEY } from '@/modules/redis/consts/cache-key.const';
-import { RedisService } from '@/modules/redis/redis.service';
-import { ViemService } from '@/modules/viem/viem.service';
+import { CACHE_KEY } from '@/modules/core/redis/consts/cache-key.const';
+import { RedisService } from '@/modules/core/redis/redis.service';
+import { ViemService } from '@/modules/core/viem/viem.service';
 import { Inject, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { PubSub } from 'graphql-subscriptions';
 import { Block } from 'viem';

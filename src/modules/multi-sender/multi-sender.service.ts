@@ -1,5 +1,5 @@
+import { ViemService } from '@/modules/core/viem/viem.service';
 import { MULTI_SENDER_ABI, MULTI_SENDER_ADDRESS } from '@/modules/token-factory/consts/multi-sender.const';
-import { ViemService } from '@/modules/viem/viem.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()

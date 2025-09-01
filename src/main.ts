@@ -1,5 +1,5 @@
-import { PrismaService } from '@/modules/prisma/prisma.service';
-import { RedisService } from '@/modules/redis/redis.service';
+import { PrismaService } from '@/modules/core/prisma/prisma.service';
+import { RedisService } from '@/modules/core/redis/redis.service';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';

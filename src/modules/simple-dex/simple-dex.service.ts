@@ -1,7 +1,7 @@
 import { DEX_ABI, DEX_CONTRACT_ADDRESS } from '@/configs/blocks/simple-dex.const';
-import { PrismaService } from '@/modules/prisma/prisma.service';
+import { PrismaService } from '@/modules/core/prisma/prisma.service';
+import { ViemService } from '@/modules/core/viem/viem.service';
 import { ERC20_ABI } from '@/modules/token-factory/consts/erc20.const';
-import { ViemService } from '@/modules/viem/viem.service';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
 @Injectable()

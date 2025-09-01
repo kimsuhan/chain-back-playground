@@ -1,12 +1,12 @@
 import { LoggerMiddleware } from '@/commons/logger.middleware';
 import { BlockModule } from '@/modules/block/block.module';
 import { CompounderModule } from '@/modules/compounder/compounder.module';
+import { PrismaModule } from '@/modules/core/prisma/prisma.module';
+import { RedisModule } from '@/modules/core/redis/redis.module';
+import { ViemModule } from '@/modules/core/viem/viem.module';
 import { MultiSenderModule } from '@/modules/multi-sender/multi-sender.module';
-import { PrismaModule } from '@/modules/prisma/prisma.module';
-import { RedisModule } from '@/modules/redis/redis.module';
 import { SimpleDexModule } from '@/modules/simple-dex/simple-dex.module';
 import { TokenFactoryModule } from '@/modules/token-factory/token-factory.module';
-import { ViemModule } from '@/modules/viem/viem.module';
 import { WalletModule } from '@/modules/wallet/wallet.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';

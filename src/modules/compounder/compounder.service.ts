@@ -7,7 +7,7 @@ import {
   PRICE_ORACLE_ABI,
   PRICE_ORACLE_ADDRESS,
 } from '@/configs/blocks/compounder.const';
-import { ViemService } from '@/modules/viem/viem.service';
+import { ViemService } from '@/modules/core/viem/viem.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()

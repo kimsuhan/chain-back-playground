@@ -1,7 +1,7 @@
-import { PrismaService } from '@/modules/prisma/prisma.service';
+import { PrismaService } from '@/modules/core/prisma/prisma.service';
+import { ViemService } from '@/modules/core/viem/viem.service';
 import { ERC20_ABI } from '@/modules/token-factory/consts/erc20.const';
 import { TOKEN_FACTORY_ABI, TOKEN_FACTORY_ADDRESS } from '@/modules/token-factory/consts/token-factory.const';
-import { ViemService } from '@/modules/viem/viem.service';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { parseAbiItem } from 'viem';
 

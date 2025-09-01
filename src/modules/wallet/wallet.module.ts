@@ -1,4 +1,4 @@
-import { PrismaModule } from '@/modules/prisma/prisma.module';
+import { PrismaModule } from '@/modules/core/prisma/prisma.module';
 import { Module } from '@nestjs/common';
 import { WalletResolver } from './wallet.resolver';
 import { WalletService } from './wallet.service';

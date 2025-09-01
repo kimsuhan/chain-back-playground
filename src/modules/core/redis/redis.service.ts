@@ -1,5 +1,5 @@
 import redisConfig from '@/configs/redis.config';
-import { CACHE_KEY } from '@/modules/redis/consts/cache-key.const';
+import { CACHE_KEY } from '@/modules/core/redis/consts/cache-key.const';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import Redis, { ChainableCommander } from 'ioredis';
