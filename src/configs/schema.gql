@@ -226,6 +226,7 @@ type Query {
 
 type Mutation {
   upsertWallet(data: WalletUpsertInput!): WalletEntity!
+  setupMarketCToken(tokenAddress: String!, name: String!, symbol: String!, reserveFactor: Float!, collateralFactor: Float!): String!
 }
 
 input WalletUpsertInput {
